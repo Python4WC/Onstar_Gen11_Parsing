@@ -1,10 +1,10 @@
-# OnStar GPS Data Decoder
+# OnStar (v10+) GPS Data Decoder
 
 A Python tool for extracting and decoding GPS data from OnStar binary files, converting the data into structured CSV format for analysis.
 
 ## Overview
 
-The OnStar Decoder processes binary files containing GPS telemetry data from OnStar systems, extracting location coordinates, timestamps, and other GPS metadata. The tool handles various data formats and performs validation to ensure data integrity.
+The OnStar Decoder processes binary files containing GPS telemetry data from OnStar systems, extracting location coordinates and timestamps. The tool handles various data formats and performs validation to ensure data integrity.
 
 ## Features
 
@@ -23,16 +23,22 @@ The OnStar Decoder processes binary files containing GPS telemetry data from OnS
 
 ### Dependencies
 ```python
+import tkinter as tk
+from tkinter import ttk, filedialog, messagebox
+import threading
+import os
+import sys
+from pathlib import Path
 import binascii
 import re
 import struct
 from datetime import datetime, timezone
 import csv
-import sys
-import os
+from tkinterdnd2 import DND_FILES, TkinterDnD
+import platform
 ```
 
-## Usage
+## CLI Usage
 
 ### Command Line Interface
 ```bash
@@ -181,6 +187,10 @@ The system implements multiple validation layers:
 - **GPS Time Validation**: Reasonable GPS week/TOW values
 - **Timestamp Validation**: Dates after 2010 (prevents invalid early dates)
 - **Data Completeness**: Required fields present
+
+## GUI Usage
+
+
 
 ## Output Format
 
