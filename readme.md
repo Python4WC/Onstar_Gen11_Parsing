@@ -1,27 +1,29 @@
 # OnStar (v10+) GPS Data Decoder
 
-A Python tool for extracting and decoding GPS data from OnStar binary files, converting the data into structured CSV format for analysis.
+A Python tool for extracting and decoding GPS data from OnStar binary files, converting it into structured CSV format for analysis.
 
 ## Overview
 
-The OnStar Decoder processes binary files containing GPS telemetry data from OnStar systems, extracting location coordinates and timestamps. The tool handles various data formats and performs validation to ensure data integrity.
+The OnStar Decoder processes binary files containing GPS telemetry data from OnStar systems (v10+), extracting location coordinates and timestamps. It supports both command-line (CLI) and graphical user interface (GUI) workflows, with robust error handling and data validation.
 
 ## Features
 
-- **Binary Data Processing**: Reads and parses OnStar binary files containing GPS data
-- **GPS Time Conversion**: Converts GPS week/time-of-week to UTC timestamps
-- **Coordinate Decoding**: Extracts and converts hexadecimal coordinate data to decimal degrees
-- **Data Validation**: Validates GPS coordinates and timestamps for accuracy
-- **CSV Export**: Outputs structured data in CSV format for further analysis
-- **Error Handling**: Robust error handling with detailed logging
+- **Binary Data Processing**: Parses OnStar binary files to extract GPS data.
+- **GPS Time Conversion**: Converts GPS week and time-of-week to UTC timestamps.
+- **Coordinate Decoding**: Converts hexadecimal coordinates to decimal degrees.
+- **Data Validation**: Ensures GPS coordinates and timestamps are accurate.
+- **CSV Export**: Outputs structured data to CSV for analysis.
+- **GUI Support**: Provides a modern, drag-and-drop interface for ease of use.
+- **Error Handling**: Includes detailed logging and user-friendly error messages.
 
 ## Installation
 
 ### Requirements
 - Python 3.6+
-- Standard library modules (no external dependencies)
+- No external dependencies (uses standard library modules)
 
 ### Dependencies
+The following Python standard library modules are used:
 ```python
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
@@ -38,261 +40,144 @@ from tkinterdnd2 import DND_FILES, TkinterDnD
 import platform
 ```
 
-## CLI Usage
+## Usage
 
-### Command Line Interface
+### CLI Usage
+Run the decoder from the command line:
 ```bash
 python onstar_decoder.py
 ```
+The program prompts for an input file path and generates a CSV output file with the same base name in the same directory.
 
-The program will prompt for the input file path and automatically generate a CSV output file with the same base name.
-
-### Programmatic Usage
+#### Programmatic Usage
 ```python
 from onstar_decoder import OnStarDecoder
 
 decoder = OnStarDecoder()
-decoder.extract_gps_data('input_file.bin', 'output_file.csv')
+decoder.extract_gps_data("input_file.bin", "output_file.csv")
 ```
+
+### GUI Usage
+The GUI provides a user-friendly interface for processing OnStar binary files.
+
+#### Launching the GUI
+```bash
+python onstar_gen11-gui.py
+```
+
+#### Features
+- **Drag-and-Drop**: Drop `.CE0` or other OnStar binary files onto the window.
+- **File Browser**: Select files via a file dialog using the "Browse Files" button.
+- **Progress Feedback**: Displays real-time progress and status updates.
+- **Error Handling**: Shows descriptive error messages for issues like invalid files.
+- **Custom UI**: Features a modern, dark-themed interface with rounded corners (Windows) and a responsive layout.
+- **Batch Processing**: Extracts all valid GPS entries and exports to CSV.
+
+#### Workflow
+1. Launch the GUI: `python onstar_gen11-gui.py`.
+2. Select a file by dragging it onto the drop zone or clicking "Browse Files."
+3. Review the file name and size displayed in the interface.
+4. Click "Process File" to extract GPS data; monitor progress via the progress bar.
+5. View results, including the number of GPS entries and the output CSV filename.
+6. Click "Clear" to reset and process another file.
+
+#### Output
+- The CSV file is saved in the same directory as the input file (e.g., `input.CE0` → `input.csv`).
+- Invalid or missing data fields are marked as "ERROR."
+
+#### Platform Notes
+- **Windows**: Includes rounded corners and a custom title bar.
+- **Other OS**: Uses standard window decorations.
+
+## Output Format
+
+### CSV Structure
+The output CSV includes the following columns:
+
+| Column          | Description                              | Type   |
+|-----------------|------------------------------------------|--------|
+| `lat`           | Latitude in decimal degrees              | float  |
+| `long`          | Longitude in decimal degrees             | float  |
+| `utc_year`      | UTC year component                      | int    |
+| `utc_month`     | UTC month component                     | int    |
+| `utc_day`       | UTC day component                       | int    |
+| `utc_hour`      | UTC hour component                      | int    |
+| `utc_min`       | UTC minute component                    | int    |
+| `timestamp_time`| Formatted timestamp (YYYY-MM-DD HH:MM:SS.mmm) | string |
+| (6 blank columns)| Reserved for future use                 | empty  |
+| `lat_hex`       | Original latitude hex value             | string |
+| `lon_hex`       | Original longitude hex value            | string |
 
 ## Class Documentation
 
 ### `OnStarDecoder`
-
 Main class for processing OnStar GPS data files.
 
 #### Constructor
 ```python
 def __init__(self):
 ```
-Initializes the decoder with GPS epoch reference (January 6, 1980 00:00:00 UTC).
+Initializes the decoder with the GPS epoch (January 6, 1980, 00:00:00 UTC).
 
 #### Methods
+- **`extract_gps_data(file_path, output_csv_path)`**  
+  Extracts GPS data from a binary file and saves it to a CSV file.  
+  - **Parameters**: `file_path` (str), `output_csv_path` (str)  
+  - **Process**: Reads file, identifies GPS blocks, parses entries, validates data, and exports to CSV.
 
-##### `extract_gps_data(file_path, output_csv_path)`
-Main entry point for GPS data extraction.
+- **`find_gps_blocks_binary(data)`**  
+  Locates GPS data blocks in binary data.  
+  - **Parameters**: `data` (bytes)  
+  - **Returns**: List of text blocks with GPS data.  
+  - **Patterns**: Searches for `gps_tow=`, `gps_week=`, `utc_year=`, `lat=`, `lon=`.
 
-**Parameters:**
-- `file_path` (str): Path to input binary file
-- `output_csv_path` (str): Path for output CSV file
+- **`parse_gps_block(block_text)`**  
+  Parses a GPS data block into a structured entry.  
+  - **Parameters**: `block_text` (str)  
+  - **Returns**: Dictionary with `lat`, `long`, `utc_year`, `utc_month`, `utc_day`, `utc_hour`, `utc_min`, `timestamp_time`, `lat_hex`, `lon_hex`.
 
-**Process:**
-1. Reads binary file data
-2. Identifies GPS data blocks
-3. Parses individual GPS entries
-4. Validates data integrity
-5. Exports to CSV format
+- **`extract_number_flexible(text, patterns)`**  
+  Extracts numeric values using regex patterns.  
+  - **Parameters**: `text` (str), `patterns` (list)  
+  - **Returns**: `int` or `None`.
 
-##### `find_gps_blocks_binary(data)`
-Locates GPS data blocks within binary data.
+- **`extract_hex_flexible(text, patterns)`**  
+  Extracts 16-character hexadecimal values.  
+  - **Parameters**: `text` (str), `patterns` (list)  
+  - **Returns**: `str` or `None`.
 
-**Parameters:**
-- `data` (bytes): Raw binary data from file
+- **`is_valid_entry(entry)`**  
+  Validates GPS entries.  
+  - **Parameters**: `entry` (dict)  
+  - **Returns**: `bool`  
+  - **Criteria**: Valid latitude (-90 to 90°), longitude (-180 to 180°), and timestamps (post-2010).
 
-**Returns:**
-- `list`: Text blocks containing GPS data
+- **`write_csv(entries, output_path)`**  
+  Writes GPS entries to a CSV file.  
+  - **Parameters**: `entries` (list), `output_path` (str)
 
-**Search Patterns:**
-- `gps_tow=` - GPS Time of Week
-- `gps_week=` - GPS Week Number
-- `utc_year=` - UTC Year
-- `lat=` - Latitude data
-- `lon=` - Longitude data
-
-##### `parse_gps_block(block_text)`
-Parses individual GPS data blocks into structured entries.
-
-**Parameters:**
-- `block_text` (str): Text block containing GPS data
-
-**Returns:**
-- `dict`: Parsed GPS entry with the following fields:
-  - `lat`: Latitude in decimal degrees
-  - `long`: Longitude in decimal degrees
-  - `utc_year`: Year component
-  - `utc_month`: Month component
-  - `utc_day`: Day component
-  - `utc_hour`: Hour component
-  - `utc_min`: Minute component
-  - `timestamp_time`: Formatted timestamp string
-  - `lat_hex`: Original latitude hex value
-  - `lon_hex`: Original longitude hex value
-
-##### `extract_number_flexible(text, patterns)`
-Extracts numeric values using multiple regex patterns for flexibility.
-
-**Parameters:**
-- `text` (str): Text to search
-- `patterns` (list): List of regex patterns to try
-
-**Returns:**
-- `int` or `None`: Extracted number or None if not found
-
-##### `extract_hex_flexible(text, patterns)`
-Extracts hexadecimal values using multiple regex patterns.
-
-**Parameters:**
-- `text` (str): Text to search
-- `patterns` (list): List of regex patterns to try
-
-**Returns:**
-- `str` or `None`: Cleaned hex string (16 characters) or None
-
-##### `is_valid_entry(entry)`
-Validates GPS entries for completeness and accuracy.
-
-**Parameters:**
-- `entry` (dict): GPS entry to validate
-
-**Returns:**
-- `bool`: True if entry is valid
-
-**Validation Criteria:**
-- Must have valid latitude and longitude coordinates
-- Must have either complete UTC time components or valid GPS timestamp
-- Coordinates must be within valid ranges (-90 to 90° for latitude, -180 to 180° for longitude)
-
-##### `write_csv(entries, output_path)`
-Writes validated GPS entries to CSV file.
-
-**Parameters:**
-- `entries` (list): List of GPS entry dictionaries
-- `output_path` (str): Output CSV file path
-
-## Data Processing Details
+## Technical Details
 
 ### GPS Time Conversion
-The decoder converts GPS time to UTC using the following process:
-
-1. **GPS Epoch**: January 6, 1980 00:00:00 UTC (first Sunday of 1980)
-2. **GPS Week**: Number of weeks since GPS epoch
-3. **Time of Week (TOW)**: Milliseconds since start of current GPS week
-4. **Conversion Formula**: 
-   ```
-   UTC = GPS_EPOCH + (GPS_WEEK × 604800) + (GPS_TOW ÷ 1000)
-   ```
+Converts GPS time to UTC:
+- **GPS Epoch**: January 6, 1980, 00:00:00 UTC
+- **Formula**: `UTC = GPS_EPOCH + (GPS_WEEK × 604800) + (GPS_TOW ÷ 1000)`
+- Accounts for leap seconds via standard GPS time conversion.
 
 ### Coordinate Decoding
-Coordinates are stored as 16-character hexadecimal strings representing 64-bit doubles:
-
-1. **Hex Cleaning**: Remove non-hex characters
-2. **Binary Conversion**: Convert hex to bytes
-3. **Struct Unpacking**: Unpack as little-endian double (`<d`)
-4. **Scaling**: Divide by 10,000,000 to get decimal degrees
+- **Input**: 16-character hexadecimal strings (64-bit doubles).
+- **Process**: Clean hex, convert to bytes, unpack as little-endian double (`<d`), divide by 10,000,000 for decimal degrees.
 
 ### Data Validation
-The system implements multiple validation layers:
-
-- **Range Validation**: Coordinates within Earth's bounds
-- **GPS Time Validation**: Reasonable GPS week/TOW values
-- **Timestamp Validation**: Dates after 2010 (prevents invalid early dates)
-- **Data Completeness**: Required fields present
-
-## GUI Usage
-
-### Graphical User Interface
-
-The OnStar Decoder also provides a graphical user interface (GUI) for users who prefer a visual workflow. The GUI allows you to select, drag-and-drop, and process OnStar binary files to extract GPS data and export it to CSV format.
-
-#### Launching the GUI
-
-To start the GUI, run the following command:
-
-```bash
-python onstar_gen11-gui.py
-```
-
-#### Main Features
-
-- **Drag-and-Drop Support**: Drop an OnStar binary file directly onto the application window.
-- **File Browser**: Click the drop zone or "Browse Files" button to select a file using a standard file dialog.
-- **Progress Feedback**: See real-time progress updates and status messages during file processing.
-- **Error Handling**: User-friendly error messages for missing files, invalid data, or processing issues.
-- **Custom UI**: Modern, dark-themed interface with rounded corners (on Windows), custom title bar, and responsive layout.
-- **Batch Processing**: Processes the entire file and exports all valid GPS entries to a CSV file with a single click.
-
-#### How to Use
-
-1. **Open the GUI**  
-   Run `python onstar_gen11-gui.py`. The main window will appear.
-
-2. **Select a File**  
-   - **Drag-and-Drop**: Drag your `.CE0` or other OnStar binary file onto the drop zone in the center of the window.  
-   - **Browse**: Click the drop zone or the "Browse Files" button to open a file dialog and select your file.
-
-3. **Review File Info**  
-   The selected file's name and size will be displayed. The "Process File" and "Clear" buttons will become enabled.
-
-4. **Process the File**  
-   Click "Process File" to begin extraction. A progress bar and status messages will indicate the current step (reading, parsing, writing, etc.).
-
-5. **View Results**  
-   When processing is complete, the number of GPS entries extracted and the output CSV filename will be shown. The CSV file is saved in the same directory as the input file, with the same base name.
-
-6. **Clear Selection**  
-   Click "Clear" to reset the interface and select a new file.
-
-#### Output
-
-- The output CSV file is generated in the same directory as the input file, with the same base name (e.g., `input.CE0` → `input.csv`).
-- The CSV format and columns are identical to those described in the [Output Format](#csv-structure) section.
-
-#### Error Handling
-
-- If an error occurs (e.g., file not found, invalid format), a descriptive error message will be shown in the interface and as a popup dialog.
-- Invalid or missing data fields in the output CSV are marked as "ERROR".
-
-#### Platform Notes
-
-- **Windows**: The GUI features rounded corners and a custom title bar.
-- **Other OS**: The GUI runs with standard window decorations.
-
-#### Example Workflow
-
-1. Start the GUI:  
-   `python onstar_gen11-gui.py`
-2. Drag `onstar_data.CE0` into the window or click "Browse Files" to select it.
-3. Click "Process File".
-4. When complete, find `onstar_data.csv` in the same folder.
-
-#### Requirements
-
-- Python 3.6+
-- `tkinter` and `tkinterdnd2` modules (install with `pip install tkinterdnd2` if needed)
-
----
-
-The GUI provides a user-friendly alternative to the command-line interface, with all core decoding and validation features available through an interactive application.
-
-## Output Format
-
-### CSV Structure
-The output CSV contains the following columns:
-
-| Column | Description | Type |
-|--------|-------------|------|
-| lat | Latitude in decimal degrees | float |
-| long | Longitude in decimal degrees | float |
-| utc_year | UTC year component | int |
-| utc_month | UTC month component | int |
-| utc_day | UTC day component | int |
-| utc_hour | UTC hour component | int |
-| utc_min | UTC minute component | int |
-| timestamp_time | Formatted timestamp (YYYY-MM-DD HH:MM:SS.mmm) | string |
-| (6 blank columns) | Reserved for future use | empty |
-| lat_hex | Original latitude hex value | string |
-| lon_hex | Original longitude hex value | string |
-
-### Error Handling
-Invalid or missing data is marked as "ERROR" in the respective fields.
+- **Range**: Latitude (-90 to 90°), longitude (-180 to 180°).
+- **Timestamp**: Dates after 2010, valid GPS week/TOW.
+- **Completeness**: Ensures required fields are present.
 
 ## Example Usage
-
 ```python
-# Create decoder instance
-decoder = OnStarDecoder()
+from onstar_decoder import OnStarDecoder
 
-# Process a binary file
+decoder = OnStarDecoder()
 input_file = "onstar_data.bin"
 output_file = "gps_data.csv"
 
@@ -304,31 +189,23 @@ except Exception as e:
 ```
 
 ## Limitations
-
-- Designed specifically for OnStar binary data format
-- Requires specific GPS data patterns in the binary file
-- Limited to GPS coordinates and basic timestamp information
-- No support for additional telemetry data that may be present
+- Specific to OnStar binary data format.
+- Requires `gps_tow=`, `gps_week=`, `lat=`, and `lon=` patterns.
+- Limited to GPS coordinates and timestamps; no additional telemetry.
+- Assumes little-endian byte order for coordinates.
 
 ## Troubleshooting
+- **File Not Found**: Verify the input file path.
+- **No GPS Data**: Ensure the file contains OnStar GPS data.
+- **Invalid Coordinates**: Check hex format of coordinates.
+- **Timestamp Errors**: Confirm GPS week/TOW values are reasonable.
 
-### Common Issues
-
-1. **File Not Found**: Ensure the input file path is correct
-2. **No GPS Data Found**: Verify the binary file contains OnStar GPS data
-3. **Invalid Coordinates**: Check if the coordinate hex values are properly formatted
-4. **Timestamp Errors**: GPS time values may be outside expected ranges
-
-### Debug Information
-The tool provides console output for:
-- Number of valid GPS entries found
-- Coordinate conversion errors
-- GPS timestamp conversion errors
-- File processing status
+### Debug Output
+- Number of valid GPS entries.
+- Coordinate and timestamp conversion errors.
+- File processing status.
 
 ## Technical Notes
-
-- Uses `latin-1` encoding to preserve binary data integrity during text processing
-- Implements flexible regex patterns to handle format variations
-- GPS epoch calculation accounts for leap seconds through standard GPS time conversion
-- Little-endian byte order assumed for coordinate decoding
+- Uses `latin-1` encoding to preserve binary data.
+- Flexible regex patterns handle format variations.
+- Little-endian byte order for coordinate decoding.
