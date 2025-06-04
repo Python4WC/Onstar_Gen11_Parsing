@@ -35,8 +35,8 @@ import binascii
 import re
 import struct
 from datetime import datetime, timezone
-import XLSX
 from tkinterdnd2 import DND_FILES, TkinterDnD
+from openpyxl import Workbook
 import platform
 ```
 
