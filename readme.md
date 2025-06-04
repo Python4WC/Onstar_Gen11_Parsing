@@ -190,7 +190,79 @@ The system implements multiple validation layers:
 
 ## GUI Usage
 
+### Graphical User Interface
 
+The OnStar Decoder also provides a graphical user interface (GUI) for users who prefer a visual workflow. The GUI allows you to select, drag-and-drop, and process OnStar binary files to extract GPS data and export it to CSV format.
+
+#### Launching the GUI
+
+To start the GUI, run the following command:
+
+```bash
+python onstar_gen11-gui.py
+```
+
+#### Main Features
+
+- **Drag-and-Drop Support**: Drop an OnStar binary file directly onto the application window.
+- **File Browser**: Click the drop zone or "Browse Files" button to select a file using a standard file dialog.
+- **Progress Feedback**: See real-time progress updates and status messages during file processing.
+- **Error Handling**: User-friendly error messages for missing files, invalid data, or processing issues.
+- **Custom UI**: Modern, dark-themed interface with rounded corners (on Windows), custom title bar, and responsive layout.
+- **Batch Processing**: Processes the entire file and exports all valid GPS entries to a CSV file with a single click.
+
+#### How to Use
+
+1. **Open the GUI**  
+   Run `python onstar_gen11-gui.py`. The main window will appear.
+
+2. **Select a File**  
+   - **Drag-and-Drop**: Drag your `.CE0` or other OnStar binary file onto the drop zone in the center of the window.  
+   - **Browse**: Click the drop zone or the "Browse Files" button to open a file dialog and select your file.
+
+3. **Review File Info**  
+   The selected file's name and size will be displayed. The "Process File" and "Clear" buttons will become enabled.
+
+4. **Process the File**  
+   Click "Process File" to begin extraction. A progress bar and status messages will indicate the current step (reading, parsing, writing, etc.).
+
+5. **View Results**  
+   When processing is complete, the number of GPS entries extracted and the output CSV filename will be shown. The CSV file is saved in the same directory as the input file, with the same base name.
+
+6. **Clear Selection**  
+   Click "Clear" to reset the interface and select a new file.
+
+#### Output
+
+- The output CSV file is generated in the same directory as the input file, with the same base name (e.g., `input.CE0` → `input.csv`).
+- The CSV format and columns are identical to those described in the [Output Format](#csv-structure) section.
+
+#### Error Handling
+
+- If an error occurs (e.g., file not found, invalid format), a descriptive error message will be shown in the interface and as a popup dialog.
+- Invalid or missing data fields in the output CSV are marked as "ERROR".
+
+#### Platform Notes
+
+- **Windows**: The GUI features rounded corners and a custom title bar.
+- **Other OS**: The GUI runs with standard window decorations.
+
+#### Example Workflow
+
+1. Start the GUI:  
+   `python onstar_gen11-gui.py`
+2. Drag `onstar_data.CE0` into the window or click "Browse Files" to select it.
+3. Click "Process File".
+4. When complete, find `onstar_data.csv` in the same folder.
+
+#### Requirements
+
+- Python 3.6+
+- `tkinter` and `tkinterdnd2` modules (install with `pip install tkinterdnd2` if needed)
+
+---
+
+The GUI provides a user-friendly alternative to the command-line interface, with all core decoding and validation features available through an interactive application.
 
 ## Output Format
 
