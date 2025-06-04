@@ -252,7 +252,7 @@ class OnStarDecoder:
                         try:
                             dt = datetime.strptime(ts, '%Y-%m-%d %H:%M:%S.%f')
                             if dt.year < 2010:
-                                entry['timestamp_time'] = 'ERROR'
+                                entry['timestamp_time'] = 'INVALID PRE-2010 DATE'
                         except Exception:
                             pass
                     # Add six blank columns
@@ -276,6 +276,10 @@ class OnStarDecoder:
                         'lat_hex': entry.get('lat_hex', ''),
                         'lon_hex': entry.get('lon_hex', '')
                     })
+                # Write two blank lines
+                csvfile.write('\n\n')
+                # Write the custom line
+                csvfile.write('Script Created by Steven Schiavone\n')
         except Exception as e:
             print(f"Error writing CSV: {e}")
 
