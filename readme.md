@@ -1,6 +1,6 @@
 # OnStar (v10+) GPS Data Decoder
 
-A Python tool for extracting and decoding GPS data from OnStar binary files, converting it into structured CSV format for analysis.
+A Python tool for extracting and decoding GPS data from OnStar binary files, converting it into structured XLSX format for analysis.
 
 ## Overview
 
@@ -12,7 +12,7 @@ The OnStar Decoder processes binary files containing GPS telemetry data from OnS
 - **GPS Time Conversion**: Converts GPS week and time-of-week to UTC timestamps.
 - **Coordinate Decoding**: Converts hexadecimal coordinates to decimal degrees.
 - **Data Validation**: Ensures GPS coordinates and timestamps are accurate.
-- **CSV Export**: Outputs structured data to CSV for analysis.
+- **XLSX Export**: Outputs structured data to XLSX for analysis.
 - **GUI Support**: Provides a modern, drag-and-drop interface for ease of use.
 - **Error Handling**: Includes detailed logging and user-friendly error messages.
 
@@ -35,7 +35,7 @@ import binascii
 import re
 import struct
 from datetime import datetime, timezone
-import csv
+import XLSX
 from tkinterdnd2 import DND_FILES, TkinterDnD
 import platform
 ```
@@ -47,14 +47,14 @@ Run the decoder from the command line:
 ```bash
 python onstar_decoder.py
 ```
-The program prompts for an input file path and generates a CSV output file with the same base name in the same directory.
+The program prompts for an input file path and generates a XLSX output file with the same base name in the same directory.
 
 #### Programmatic Usage
 ```python
 from onstar_decoder import OnStarDecoder
 
 decoder = OnStarDecoder()
-decoder.extract_gps_data("input_file.bin", "output_file.csv")
+decoder.extract_gps_data("input_file.bin", "output_file.XLSX")
 ```
 
 ### GUI Usage
@@ -71,18 +71,18 @@ python onstar_gen11-gui.py
 - **Progress Feedback**: Displays real-time progress and status updates.
 - **Error Handling**: Shows descriptive error messages for issues like invalid files.
 - **Custom UI**: Features a modern, dark-themed interface with rounded corners (Windows) and a responsive layout.
-- **Batch Processing**: Extracts all valid GPS entries and exports to CSV.
+- **Batch Processing**: Extracts all valid GPS entries and exports to XLSX.
 
 #### Workflow
 1. Launch the GUI: `python onstar_gen11-gui.py`.
 2. Select a file by dragging it onto the drop zone or clicking "Browse Files."
 3. Review the file name and size displayed in the interface.
 4. Click "Process File" to extract GPS data; monitor progress via the progress bar.
-5. View results, including the number of GPS entries and the output CSV filename.
+5. View results, including the number of GPS entries and the output XLSX filename.
 6. Click "Clear" to reset and process another file.
 
 #### Output
-- The CSV file is saved in the same directory as the input file (e.g., `input.CE0` → `input.csv`).
+- The XLSX file is saved in the same directory as the input file (e.g., `input.CE0` → `input.XLSX`).
 - Invalid or missing data fields are marked as "ERROR."
 
 #### Platform Notes
@@ -91,8 +91,8 @@ python onstar_gen11-gui.py
 
 ## Output Format
 
-### CSV Structure
-The output CSV includes the following columns:
+### XLSX Structure
+The output XLSX includes the following columns:
 
 | Column          | Description                              | Type   |
 |-----------------|------------------------------------------|--------|
@@ -120,10 +120,10 @@ def __init__(self):
 Initializes the decoder with the GPS epoch (January 6, 1980, 00:00:00 UTC).
 
 #### Methods
-- **`extract_gps_data(file_path, output_csv_path)`**  
-  Extracts GPS data from a binary file and saves it to a CSV file.  
-  - **Parameters**: `file_path` (str), `output_csv_path` (str)  
-  - **Process**: Reads file, identifies GPS blocks, parses entries, validates data, and exports to CSV.
+- **`extract_gps_data(file_path, output_XLSX_path)`**  
+  Extracts GPS data from a binary file and saves it to a XLSX file.  
+  - **Parameters**: `file_path` (str), `output_XLSX_path` (str)  
+  - **Process**: Reads file, identifies GPS blocks, parses entries, validates data, and exports to XLSX.
 
 - **`find_gps_blocks_binary(data)`**  
   Locates GPS data blocks in binary data.  
@@ -152,8 +152,8 @@ Initializes the decoder with the GPS epoch (January 6, 1980, 00:00:00 UTC).
   - **Returns**: `bool`  
   - **Criteria**: Valid latitude (-90 to 90°), longitude (-180 to 180°), and timestamps (post-2010).
 
-- **`write_csv(entries, output_path)`**  
-  Writes GPS entries to a CSV file.  
+- **`write_XLSX(entries, output_path)`**  
+  Writes GPS entries to a XLSX file.  
   - **Parameters**: `entries` (list), `output_path` (str)
 
 ## Technical Details
@@ -179,7 +179,7 @@ from onstar_decoder import OnStarDecoder
 
 decoder = OnStarDecoder()
 input_file = "onstar_data.bin"
-output_file = "gps_data.csv"
+output_file = "gps_data.XLSX"
 
 try:
     decoder.extract_gps_data(input_file, output_file)
