@@ -512,13 +512,60 @@ class OnStarGUI:
 
 def main():
     root = TkinterDnD.Tk()  # Use TkinterDnD for drag-and-drop support
-    app = OnStarGUI(root)
+    icon_path_for_display = "car.ico" # Used for a more user-friendly message
+
+    try:
+        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPass'):
+            # Application is frozen (bundled by PyInstaller)
+            # sys._MEIPass is the path to the temporary folder where bundled files are extracted
+            base_path = sys._MEIPass
+            icon_path = os.path.join(base_path, "car.ico")
+            icon_path_for_display = icon_path # Show full path in case of error for bundled app
+        else:
+            # Application is running in a normal Python environment (development)
+            # Icon is expected to be in the same directory as the script
+            base_path = os.path.dirname(os.path.abspath(__file__))
+            icon_path = os.path.join(base_path, "car.ico")
+            icon_path_for_display = icon_path # Show full path in case of error for dev
+
+        # For debugging, you can uncomment these lines to check if the file exists
+        # if not os.path.exists(icon_path):
+        #     print(f"DEBUG: Icon file does NOT exist at: {icon_path}")
+        # else:
+        #     print(f"DEBUG: Icon file found at: {icon_path}")
+
+        root.iconbitmap(icon_path)
+
+    except tk.TclError as e:
+        # Construct a more detailed error message
+        error_details = (
+            f"Could not load the icon file '{os.path.basename(icon_path_for_display)}'. Using default.\n\n"
+            f"Attempted path: {icon_path_for_display}\n"
+            f"Error: {e}"
+        )
+        print(f"ICON LOAD ERROR: {error_details}") # Print to console if available
+        messagebox.showwarning("Icon Error", error_details)
+        
+    app = OnStarGUI(root) # Initialize your application GUI
     
     # Center the window
-    root.update_idletasks()
-    x = (root.winfo_screenwidth() // 2) - (root.winfo_width() // 2)
-    y = (root.winfo_screenheight() // 2) - (root.winfo_height() // 2)
-    root.geometry(f"+{x}+{y}")
+    # The OnStarGUI class already sets the initial geometry (e.g., "800x600")
+    root.update_idletasks() # Ensure window dimensions are updated
+    
+    # Get screen dimensions
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    
+    # Get window dimensions
+    window_width = root.winfo_width()
+    window_height = root.winfo_height()
+    
+    # Calculate position for centering
+    position_x = (screen_width // 2) - (window_width // 2)
+    position_y = (screen_height // 2) - (window_height // 2)
+    
+    # Set the window's position (size is already set by OnStarGUI)
+    root.geometry(f"+{position_x}+{position_y}")
     
     root.mainloop()
 
