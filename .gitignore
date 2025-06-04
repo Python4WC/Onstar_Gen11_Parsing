@@ -3,13 +3,18 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+#stuff I'm excluding
+*.docx
+*.toc
+*.pyw
+*.spec
+
 # User-specific files
 *.rsuser
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
-*.docx
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

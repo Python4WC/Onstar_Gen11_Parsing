@@ -23,7 +23,7 @@ class OnStarDecoder:
     def __init__(self):
         # GPS epoch start: January 6, 1980 00:00:00 UTC (first Sunday of 1980)
         self.gps_epoch = datetime(1980, 1, 6, 0, 0, 0, tzinfo=timezone.utc)
-    
+
     def extract_gps_data(self, file_path, output_csv_path, progress_callback=None):
         """Extract GPS data from OnStar binary file and decode it to CSV"""
         try:
@@ -392,6 +392,46 @@ class OnStarGUI:
         self.root.bind('<Configure>', self.on_configure)
         self.set_rounded_corners(radius=18)
 
+        # Add this binding to restore overrideredirect after deiconify
+        self.root.bind('<Map>', self.on_restore)
+
+        # Force taskbar icon
+        self.force_taskbar_icon()
+        self.periodic_taskbar_fix()  # Start periodic taskbar fix
+
+    def force_taskbar_icon(self):
+        if platform.system() == "Windows":
+            hwnd = self.root.winfo_id()
+            GWL_EXSTYLE = -20
+            WS_EX_APPWINDOW = 0x00040000
+            WS_EX_TOOLWINDOW = 0x00000080
+            SW_SHOW = 5
+            SW_RESTORE = 9
+        
+            # Get and set extended style
+            style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+            style = (style | WS_EX_APPWINDOW) & ~WS_EX_TOOLWINDOW
+            ctypes.windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style)
+        
+            # Ensure no parent window (main app window)
+            ctypes.windll.user32.SetWindowLongW(hwnd, -8, 0)  # GWL_HWNDPARENT = -8
+        
+            # Force window to show in taskbar and Alt+Tab
+            if self.root.state() == 'iconic':
+                ctypes.windll.user32.ShowWindow(hwnd, SW_RESTORE)  # Restore if minimized
+            else:
+                ctypes.windll.user32.ShowWindow(hwnd, SW_SHOW)  # Show if normal
+        
+            # Update window to ensure taskbar visibility
+            ctypes.windll.user32.SetActiveWindow(hwnd)
+            ctypes.windll.user32.SetForegroundWindow(hwnd)
+            self.root.update_idletasks()
+    
+    def periodic_taskbar_fix(self):
+        if platform.system() == "Windows":
+            self.force_taskbar_icon()
+            self.root.after(2000, self.periodic_taskbar_fix)  # Re-apply every 2 seconds
+
     def set_rounded_corners(self, radius=18):
         if platform.system() == "Windows":
             hwnd = windll.user32.GetParent(self.root.winfo_id())
@@ -421,8 +461,14 @@ class OnStarGUI:
     def minimize_window(self):
         self.root.update_idletasks()
         self.root.overrideredirect(False)
+        self.force_taskbar_icon()  # Ensure taskbar visibility before minimizing
         self.root.iconify()
-        self.root.after(10, lambda: self.root.overrideredirect(True))
+
+    def on_restore(self, event):
+        if self.root.state() == 'normal':
+            self.root.overrideredirect(True)
+            self.force_taskbar_icon()  # Re-apply taskbar fix after restore
+            self.set_rounded_corners(radius=18)  # Re-apply rounded corners
 
     def setup_ui(self):
         # Main container
@@ -661,6 +707,9 @@ def main():
     x = (root.winfo_screenwidth() // 2) - (root.winfo_width() // 2)
     y = (root.winfo_screenheight() // 2) - (root.winfo_height() // 2)
     root.geometry(f"+{x}+{y}")
+    
+    # Force taskbar icon after geometry update
+    app.force_taskbar_icon()
     
     root.mainloop()
 
