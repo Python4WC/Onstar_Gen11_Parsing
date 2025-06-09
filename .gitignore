@@ -6,7 +6,6 @@
 #stuff I'm excluding
 *.docx
 *.toc
-*.pyw
 *.pyz
 *.pkg
 *.spec
